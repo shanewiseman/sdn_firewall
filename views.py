@@ -10,26 +10,26 @@ from models import *
 import re
 import json
 
-def v1FirewallRequest(request, token, action, address ):
+def v1FirewallRequest(request, token, action ):
 
     response = HttpResponse()
 
     actionlist = {
             "ALLOW" : {
-                    "POST"   : insert_allow( address, request.body ),
-                    "GET"    : get_allow   ( address, request.body ),
-                    "DELETE" : delete_allow( address, request.body ),
+                    "POST"   : insert_allow,
+                    "GET"    : get_allow   ,
+                    "DELETE" : delete_allow,
                 },
 
             "DROP" : {
-                    "POST"   : insert_drop( address, request.body ),
-                    "GET"    : get_drop   ( address, request.body ),
-                    "DELETE" : delete_drop( address, request.body ),
+                    "POST"   : insert_drop,
+                    "GET"    : get_drop   ,
+                    "DELETE" : delete_drop,
                 },
             "FORWARD" : {
-                    "POST"   : insert_forward( address, request.body ),
-                    "GET"    : get_forward   ( address, request.body ),
-                    "DELETE" : delete_forward( address, request.body ),
+                    "POST"   : insert_forward,
+                    "GET"    : get_forward ,
+                    "DELETE" : delete_forward,
                 },
     }
 
@@ -39,19 +39,18 @@ def v1FirewallRequest(request, token, action, address ):
         response.status_code = 401
         return response
 
-    if not re.search('(POST|GET|DELETE)', request.method ):
-        response.status_code = 402
-        return response
-
     try:
-        body = actionlist[ action ][ request.method ]
+        body = actionlist[ action ][ request.method ](json.loads(request.body), token )
     except Exception as ex:
+        print ex
         response.status_code = 500
         return response
 
-    response.body = formatJsonResponse(body)
-    response.status_code = 200
-    return response
+    except ValueError as ex:
+        response.status_code = 400
+        return response
+
+    return HttpResponse(formatJsonResponse(body), content_type='application/json' )
 #endfunction
 
 def formatJsonResponse( data ):

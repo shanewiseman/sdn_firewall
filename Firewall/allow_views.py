@@ -1,6 +1,5 @@
 def insert_allow( address, body = None):
-    print "CHEAAAA"
-    True
+    return { 'test' :'value' }
 #endfunction
 def get_allow( address, body = None):
     True
